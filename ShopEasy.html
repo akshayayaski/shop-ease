@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ShopEasy - E-Commerce</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f1f3f6;
+        }
+        /* HEADER */
+        
+        .header {
+            background: #2874f0;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .header input {
+            padding: 8px;
+        }
+        
+        .cart-btn {
+            background: yellow;
+            padding: 8px 15px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .products {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            width: 220px;
+            margin: 15px;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+        }
+        
+        .card button {
+            background: #2874f0;
+            color: white;
+            border: none;
+            padding: 8px;
+            margin-top: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        #cartPage,
+        #checkoutPage {
+            display: none;
+            padding: 20px;
+        }
+        
+        .cart-item {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        input,
+        select {
+            padding: 8px;
+            width: 250px;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" style="display:flex;justify-content:center;align-items:center;height:100vh;background:#2874f0;">
+        <div style="background:white;padding:30px;border-radius:10px;text-align:center;width:300px;">
+            <h2>Login</h2>
+            <input id="loginUser" placeholder="Enter Username"><br>
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="profilePage" style="display:none;padding:30px;">
+        <h2>Create Profile (Mandatory)</h2>
+        <input id="name" placeholder="Full Name"><br>
+        <input id="email" placeholder="Email (@gmail.com only)"><br>
+        <input id="phone" placeholder="Mobile Number (10 digits)"><br>
+        <button onclick="saveProfile()">Submit Profile</button>
+    </div>
+
+    <!-- MAIN WEBSITE -->
+    <div id="mainWebsite" style="display:none;">
+
+        <div class="header">
+            <h2>🛍 ShopEasy | Welcome <span id="userDisplay"></span></h2>
+
+            <div>
+                <input type="text" id="search" placeholder="Search products..." onkeyup="searchProduct()">
+                <button class="cart-btn" onclick="openCart()">Cart (<span id="cartCount">0</span>)</button>
+                <button style="background:red;color:white;border:none;padding:8px;" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="products" id="productPage"></div>
+
+        <!-- CART -->
+        <div id="cartPage">
+            <h2>Your Cart</h2>
+            <div id="cartItems"></div>
+            <h3 id="totalPrice"></h3>
+            <button onclick="goHome()">Back</button>
+            <button onclick="goCheckout()">Proceed to Checkout</button>
+        </div>
+
+        <!-- CHECKOUT -->
+        <div id="checkoutPage">
+            <h2>Checkout</h2>
+
+            <h3>Shipping Address</h3>
+            <input id="fullname" placeholder="Full Name">
+            <input id="address" placeholder="Address">
+            <input id="city" placeholder="City">
+            <input id="pincode" placeholder="Pincode">
+
+            <h3>Payment Method</h3>
+            <select id="payment">
+<option>UPI</option>
+<option>Credit/Debit Card</option>
+<option>Cash on Delivery</option>
+</select>
+
+            <br><br>
+            <button onclick="placeOrder()">Place Order</button>
+        </div>
+
+    </div>
+
+    <script>
+        let cart = [];
+
+        /* LOGIN */
+        function login() {
+            let user = document.getElementById("loginUser").value.trim();
+            if (user === "") {
+                alert("Username required!");
+                return;
+            }
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("profilePage").style.display = "block";
+        }
+
+        /* PROFILE VALIDATION */
+        function saveProfile() {
+
+            let name = document.getElementById("name").value.trim();
+            let email = document.getElementById("email").value.trim();
+            let phone = document.getElementById("phone").value.trim();
+
+            if (name === "") {
+                alert("Name is required");
+                return;
+            }
+
+            if (!email.endsWith("@gmail.com")) {
+                alert("Email must end with @gmail.com");
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(phone)) {
+                alert("Mobile number must be exactly 10 digits");
+                return;
+            }
+
+            document.getElementById("profilePage").style.display = "none";
+            document.getElementById("mainWebsite").style.display = "block";
+            document.getElementById("userDisplay").innerText = name;
+
+            alert("Profile Created Successfully!");
+        }
+
+        /* LOGOUT */
+        function logout() {
+            location.reload();
+        }
+
+        /* PRODUCT LIST */
+        let productData = [{
+            name: "Smartphone",
+            img: "https://m.media-amazon.com/images/I/61SUj2aKoEL._SX679_.jpg"
+        }, {
+            name: "Laptop",
+            img: "https://m.media-amazon.com/images/I/61L5QgPvgqL._SX679_.jpg"
+        }, {
+            name: "Headphones",
+            img: "https://m.media-amazon.com/images/I/61CGHv6kmWL._SX679_.jpg"
+        }, {
+            name: "Smart Watch",
+            img: "https://m.media-amazon.com/images/I/71YAIJxXcXL._SX679_.jpg"
+        }, {
+            name: "Bluetooth Speaker",
+            img: "https://m.media-amazon.com/images/I/61uA2UVnYWL._SX679_.jpg"
+        }, {
+            name: "Camera",
+            img: "https://m.media-amazon.com/images/I/81KkrQWEHIL._SX679_.jpg"
+        }, {
+            name: "Shoes",
+            img: "https://m.media-amazon.com/images/I/71w3oJ7aWyL._UY695_.jpg"
+        }, {
+            name: "Backpack",
+            img: "https://m.media-amazon.com/images/I/81KECkC7YCL._UY695_.jpg"
+        }, {
+            name: "T-Shirt",
+            img: "https://m.media-amazon.com/images/I/61L9J0g8R-L._UY741_.jpg"
+        }, {
+            name: "Power Bank",
+            img: "https://m.media-amazon.com/images/I/61wN6F5kWUL._SX679_.jpg"
+        }];
+
+        let productPage = document.getElementById("productPage");
+
+        for (let i = 1; i <= 100; i++) {
+            let product = productData[i % productData.length];
+            let name = product.name + " " + i;
+            let price = Math.floor(Math.random() * 50000) + 500;
+
+            let card = document.createElement("div");
+            card.className = "card";
+
+            card.innerHTML = `
+<img src="${product.img}">
+<h3>${name}</h3>
+<p>₹${price}</p>
+<button onclick="addToCart('${name}',${price})">Add to Cart</button>
+`;
+
+            productPage.appendChild(card);
+        }
+
+        /* CART */
+        function addToCart(name, price) {
+            cart.push({
+                name,
+                price,
+                qty: 1
+            });
+            document.getElementById("cartCount").innerText = cart.length;
+            alert("Added to Cart");
+        }
+
+        function openCart() {
+            document.getElementById("productPage").style.display = "none";
+            document.getElementById("cartPage").style.display = "block";
+
+            let html = "";
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                total += item.price * item.qty;
+                html += `
+<div class="cart-item">
+<span>${item.name}</span>
+<input type="number" value="${item.qty}" min="1"
+onchange="updateQty(${index},this.value)">
+<span>₹${item.price*item.qty}</span>
+<button onclick="removeItem(${index})">Remove</button>
+</div>`;
+            });
+
+            document.getElementById("cartItems").innerHTML = html;
+            document.getElementById("totalPrice").innerText = "Total: ₹" + total;
+        }
+
+        function updateQty(index, qty) {
+            cart[index].qty = parseInt(qty);
+            openCart();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            document.getElementById("cartCount").innerText = cart.length;
+            openCart();
+        }
+
+        function goHome() {
+            document.getElementById("productPage").style.display = "flex";
+            document.getElementById("cartPage").style.display = "none";
+        }
+
+        function goCheckout() {
+            document.getElementById("cartPage").style.display = "none";
+            document.getElementById("checkoutPage").style.display = "block";
+        }
+
+        /* ORDER */
+        function placeOrder() {
+
+            let name = document.getElementById("fullname").value;
+            let address = document.getElementById("address").value;
+            let city = document.getElementById("city").value;
+
+            if (name === "" || address === "" || city === "") {
+                alert("Fill delivery details!");
+                return;
+            }
+
+            let orderID = "ORD" + Math.floor(Math.random() * 100000);
+
+            alert("Order Placed Successfully!\nOrder ID: " + orderID + "\nDelivery in 3-5 days");
+
+            location.reload();
+        }
+
+        /* SEARCH */
+        function searchProduct() {
+            let input = document.getElementById("search").value.toLowerCase();
+            let cards = document.getElementsByClassName("card");
+
+            for (let i = 0; i < cards.length; i++) {
+                let title = cards[i].getElementsByTagName("h3")[0].innerText.toLowerCase();
+                cards[i].style.display = title.includes(input) ? "block" : "none";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
